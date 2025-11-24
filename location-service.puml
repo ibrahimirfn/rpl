@@ -1,0 +1,91 @@
+@startuml
+title OpenMRS Location Module - Service Layer Class Diagram
+
+' Professional styling suitable for technical documentation
+skinparam class {
+    BackgroundColor White
+    ArrowColor Black
+    BorderColor Black
+}
+skinparam linetype ortho
+
+' Interface Definition
+' Source: api/src/main/java/org/openmrs/api/LocationService.java
+interface LocationService {
+    + saveLocation(Location location) : Location
+    + getLocation(Integer locationId) : Location
+    + getLocation(String name) : Location
+    + getLocationByUuid(String uuid) : Location
+    + getAllLocations(boolean includeRetired) : List<Location>
+    + getLocations(String nameFragment) : List<Location>
+    + getRootLocations(boolean includeRetired) : List<Location>
+    + retireLocation(Location location, String reason) : Location
+    + unretireLocation(Location location) : Location
+    + purgeLocation(Location location) : void
+    + saveLocationTag(LocationTag tag) : LocationTag
+    + getLocationTag(Integer locationTagId) : LocationTag
+    + getAllLocationTags(boolean includeRetired) : List<LocationTag>
+    + getLocationsByTag(LocationTag tag) : List<Location>
+}
+
+' Service Implementation
+' Source: api/src/main/java/org/openmrs/api/impl/LocationServiceImpl.java
+class LocationServiceImpl {
+    - dao : LocationDAO
+    + setLocationDAO(LocationDAO dao) : void
+    + saveLocation(Location location) : Location
+    + getLocation(Integer locationId) : Location
+    + getLocation(String name) : Location
+    + getLocationByUuid(String uuid) : Location
+    + getAllLocations(boolean includeRetired) : List<Location>
+    + getLocations(String nameFragment) : List<Location>
+    + getRootLocations(boolean includeRetired) : List<Location>
+    + retireLocation(Location location, String reason) : Location
+    + unretireLocation(Location location) : Location
+    + purgeLocation(Location location) : void
+    + saveLocationTag(LocationTag tag) : LocationTag
+    + getLocationTag(Integer locationTagId) : LocationTag
+    + getAllLocationTags(boolean includeRetired) : List<LocationTag>
+    + getLocationsByTag(LocationTag tag) : List<Location>
+}
+
+' DAO Interface
+' Source: api/src/main/java/org/openmrs/api/db/LocationDAO.java
+interface LocationDAO {
+    + saveLocation(Location location) : Location
+    + getLocation(Integer locationId) : Location
+    + getLocation(String name) : Location
+    + getAllLocations(boolean includeRetired) : List<Location>
+    + getLocations(String nameFragment) : List<Location>
+    + getRootLocations(boolean includeRetired) : List<Location>
+    + deleteLocation(Location location) : void
+    + saveLocationTag(LocationTag tag) : LocationTag
+    + getLocationTag(Integer locationTagId) : LocationTag
+    + getAllLocationTags(boolean includeRetired) : List<LocationTag>
+    + getLocationsByTag(LocationTag tag) : List<Location>
+}
+
+' Hibernate DAO Implementation
+' Source: api/src/main/java/org/openmrs/api/db/hibernate/HibernateLocationDAO.java
+class HibernateLocationDAO {
+    - sessionFactory : SessionFactory
+    + setSessionFactory(SessionFactory sessionFactory) : void
+    + saveLocation(Location location) : Location
+    + getLocation(Integer locationId) : Location
+    + getLocation(String name) : Location
+    + getAllLocations(boolean includeRetired) : List<Location>
+    + getLocations(String nameFragment) : List<Location>
+    + getRootLocations(boolean includeRetired) : List<Location>
+    + deleteLocation(Location location) : void
+    + saveLocationTag(LocationTag tag) : LocationTag
+    + getLocationTag(Integer locationTagId) : LocationTag
+    + getAllLocationTags(boolean includeRetired) : List<LocationTag>
+    + getLocationsByTag(LocationTag tag) : List<Location>
+}
+
+' Relationships
+LocationService <|.. LocationServiceImpl : implements
+LocationServiceImpl --> LocationDAO : uses
+LocationDAO <|.. HibernateLocationDAO : implements
+
+@enduml
