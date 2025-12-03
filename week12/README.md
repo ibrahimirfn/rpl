@@ -1,18 +1,19 @@
-# Reverse Engineering Assignment Week 12
+# Tugas Reverse Engineering Week 12
 
 **Ibrahim Irfanul Haq (H1A023003)**
 
-This document explains the structural relationships between key entities in a healthcare system database.
+Dokumen ini menjelaskan hubungan struktural antara entitas-entitas kunci dalam sistem basis data layanan kesehatan.
 
-## Overview
+## Gambaran Umum
 
-This assignment explores the relationships between core healthcare data models: Visit, Encounter, Provider, and Person. Understanding these relationships is essential for working with healthcare information systems.
+Tugas ini mengeksplorasi hubungan antara model data kesehatan inti: Visit, Encounter, Provider, dan Person. Memahami hubungan ini sangat penting untuk bekerja dengan sistem informasi kesehatan.
 
-## Database Schema
+## Skema Database
 
-### Entity Relationship Diagram
+### Diagram Relasi Entitas
+
 ```sql
--- Person table (base entity)
+-- Tabel Person (entitas dasar)
 CREATE TABLE person (
     person_id INT PRIMARY KEY,
     name VARCHAR(255),
@@ -21,7 +22,7 @@ CREATE TABLE person (
     gender VARCHAR(10)
 );
 
--- Provider table (extends Person)
+-- Tabel Provider (perpanjangan dari Person)
 CREATE TABLE provider (
     provider_id INT PRIMARY KEY,
     person_id INT NOT NULL,
@@ -30,7 +31,7 @@ CREATE TABLE provider (
     FOREIGN KEY (person_id) REFERENCES person(person_id)
 );
 
--- Visit table (container)
+-- Tabel Visit (wadah kunjungan)
 CREATE TABLE visit (
     visit_id INT PRIMARY KEY,
     patient_id INT NOT NULL,
@@ -40,7 +41,7 @@ CREATE TABLE visit (
     FOREIGN KEY (patient_id) REFERENCES person(person_id)
 );
 
--- Encounter table (discrete events)
+-- Tabel Encounter (kejadian diskret)
 CREATE TABLE encounter (
     encounter_id INT PRIMARY KEY,
     visit_id INT NOT NULL,
@@ -53,9 +54,10 @@ CREATE TABLE encounter (
 );
 ```
 
-## Usage Example
+## Contoh Penggunaan
+
 ```python
-# Example: Query to get all encounters in a visit
+# Contoh: Query untuk mendapatkan semua encounter dalam satu visit
 def get_visit_encounters(visit_id):
     query = """
     SELECT e.encounter_id, e.encounter_type, e.encounter_date,
@@ -68,7 +70,7 @@ def get_visit_encounters(visit_id):
     """
     return execute_query(query, [visit_id])
 
-# Example: Get provider details
+# Contoh: Mendapatkan detail provider
 def get_provider_info(provider_id):
     query = """
     SELECT pr.provider_id, pr.specialty, pr.license_number,
@@ -78,51 +80,83 @@ def get_provider_info(provider_id):
     WHERE pr.provider_id = ?
     """
     return execute_query(query, [provider_id])
+
+# Contoh: Membuat encounter baru
+def create_encounter(visit_id, provider_id, encounter_type, diagnosis):
+    query = """
+    INSERT INTO encounter (visit_id, provider_id, encounter_type, 
+                          encounter_date, diagnosis)
+    VALUES (?, ?, ?, NOW(), ?)
+    """
+    return execute_query(query, [visit_id, provider_id, 
+                                 encounter_type, diagnosis])
 ```
 
-## Entity Relationships
+## Hubungan Antar Entitas
 
-### 1. Visit and Encounter Relationship
+### 1. Hubungan Visit dan Encounter
 
-**Visit (Kunjungan)**: Represents a period of time when a patient actively interacts with the healthcare system at a specific location. A visit serves as a container that can span one day or multiple days.
+**Visit (Kunjungan)**: Mewakili periode waktu ketika pasien aktif berinteraksi dengan sistem layanan kesehatan di suatu lokasi. Visit adalah wadah yang dapat berlangsung selama satu hari atau lebih.
 
-**Encounter (Perjumpaan)**: Represents a discrete event or single clinical transaction, such as:
-- Recording vital signs
-- Making a diagnosis
-- Completing a form
+**Encounter (Perjumpaan)**: Mewakili peristiwa diskret atau transaksi klinis tunggal, seperti:
+- Mencatat tanda vital
+- Membuat diagnosis
+- Mengisi formulir
 
-**Structural Relationship**: One Visit can contain multiple Encounters.
+**Hubungan Struktural**: Satu Visit dapat mencakup banyak Encounter.
+
 ```
-Visit (1) ──── (Many) Encounter
+Visit (1) ──── (Banyak) Encounter
 ```
 
-### 2. Provider and Person Relationship
+### 2. Hubungan Provider dan Person
 
-**Person (Individu)**: The base entity that stores demographic data (name, address, attributes) for all individuals in the system, including patients, users, and providers.
+**Person (Individu)**: Adalah entitas dasar yang menyimpan data demografi (nama, alamat, atribut) untuk semua orang dalam sistem (pasien, pengguna, penyedia).
 
-**Provider (Penyedia Layanan)**: A specialized role assigned to a person who delivers healthcare services.
+**Provider (Penyedia Layanan)**: Adalah peran khusus yang diberikan kepada seseorang yang memberikan layanan kesehatan.
 
-**Structural Relationship**: The provider table contains a foreign key (`person_id`) that points directly to the person table, making Provider an extension of the Person entity.
+**Hubungan Struktural**: Tabel provider memiliki kunci asing (`person_id`) yang menunjuk langsung ke tabel person, menjadikan Provider sebagai perpanjangan dari entitas Person.
+
 ```
 Person (1) ──── (1) Provider
              person_id (FK)
 ```
 
-## Database Schema Summary
+## Ringkasan Skema Database
 
-| Entity | Purpose | Key Relationships |
-|--------|---------|-------------------|
-| Person | Base demographic data for all individuals | Referenced by Provider |
-| Provider | Healthcare service provider role | Extends Person via `person_id` FK |
-| Visit | Container for patient interaction period | Contains multiple Encounters |
-| Encounter | Discrete clinical transaction/event | Belongs to one Visit |
+| Entitas | Tujuan | Relasi Kunci |
+|---------|--------|--------------|
+| Person | Data demografi dasar untuk semua individu | Direferensikan oleh Provider |
+| Provider | Peran penyedia layanan kesehatan | Memperpanjang Person melalui FK `person_id` |
+| Visit | Wadah untuk periode interaksi pasien | Berisi banyak Encounter |
+| Encounter | Transaksi/kejadian klinis diskret | Termasuk dalam satu Visit |
 
-## Key Concepts
+## Konsep Kunci
 
-- **One-to-Many**: A single Visit encompasses multiple Encounters
-- **One-to-One Extension**: Provider extends Person through foreign key relationship
-- **Role-Based Design**: Provider represents a specialized role of the Person entity
+- **One-to-Many (Satu-ke-Banyak)**: Satu Visit mencakup banyak Encounter
+- **One-to-One Extension (Ekstensi Satu-ke-Satu)**: Provider memperpanjang Person melalui hubungan kunci asing
+- **Role-Based Design (Desain Berbasis Peran)**: Provider merepresentasikan peran khusus dari entitas Person
 
-## Author
+## Contoh Kasus Penggunaan
 
-Ibrahim Irfanul Haq (H1A023003)
+### Skenario 1: Pasien Datang ke Rumah Sakit
+
+1. Pasien datang → **Visit** dibuat
+2. Perawat mencatat tanda vital → **Encounter** pertama
+3. Dokter melakukan pemeriksaan → **Encounter** kedua
+4. Pasien pulang → **Visit** berakhir
+
+### Skenario 2: Mencari Informasi Provider
+
+```python
+# Mendapatkan semua provider dengan spesialisasi tertentu
+def get_providers_by_specialty(specialty):
+    query = """
+    SELECT pr.provider_id, pr.license_number,
+           p.name, p.address
+    FROM provider pr
+    JOIN person p ON pr.person_id = p.person_id
+    WHERE pr.specialty = ?
+    """
+    return execute_query(query, [specialty])
+```
